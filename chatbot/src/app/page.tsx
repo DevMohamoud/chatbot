@@ -11,6 +11,30 @@ export default function App() {
     }
   ]);
 
+  const callGetResponse = async () => {
+    setIsLoading(true);
+    let temp = messages;
+    temp.push({ role: "user", content: theInput });
+    setMessages(temp);
+    setTheInput("");
+    console.log("Calling OpenAI...");
+
+    const response = await fetch("/api", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ messages }),
+    });
+
+    const data = await response.json();
+    const { output } = data;
+    console.log("OpenAI replied...", output.content);
+
+    setMessages((previousMessages) => [...previousMessages, output]);
+    setIsLoading(false);
+  };
+
   const Submit = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "enter") {
       event.preventDefault();
@@ -24,7 +48,20 @@ export default function App() {
       <h1 className="text-5xl font-sans">ChatterBot</h1>
       <div className="flex h-[35rem] w-[40rem] flex-col items-center bg-gray-600 rounded-xl">
         <div className="h-full flex flex-col gap-2 overflow-y-auto py-8 px-3 w-full">
-          we're gonna do something here
+          {messages.map((el) => {
+            return(
+              <div key={el.content}
+              className={`w-max max-w-[18rem] rounded-md px-4 py-3 h-main ${
+                el.role  === "assistant" ? "self-start bg-gray-200 text-gray-800" 
+                : "self-end bg-gray-800 text-gray-50"
+              }`}
+              >
+                {el.content}
+              </div>
+            )
+          })}
+
+          {isLoading ? <div className="self-start bg-gray-200 text-gray-800 w-max max-w-[18rem] rounded-md px-4 py-3 h-main">*Sanaaging</div> : ""}
         </div>
         <div className="relative w-[80%] bottom-4 flex justify-center">
           <textarea value={theInput} onChange={( event ) => 
